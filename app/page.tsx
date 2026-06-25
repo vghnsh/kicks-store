@@ -65,7 +65,7 @@ export default function HomePage() {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
             <div className="absolute bottom-0 left-0 p-6">
-              <p className="text-xs font-semibold uppercase tracking-widest text-white/60 mb-1">Women's Fashion</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-white/60 mb-1">Women&apos;s Fashion</p>
               <h3 className="text-2xl font-bold text-white leading-tight">Shop Women</h3>
               <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-white/80 group-hover:text-white transition-colors">
                 Explore collection
@@ -126,7 +126,7 @@ export default function HomePage() {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
             <div className="absolute bottom-0 left-0 p-6">
-              <p className="text-xs font-semibold uppercase tracking-widest text-white/60 mb-1">Men's Fashion</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-white/60 mb-1">Men&apos;s Fashion</p>
               <h3 className="text-2xl font-bold text-white leading-tight">Shop Men</h3>
               <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-white/80 group-hover:text-white transition-colors">
                 Explore collection
