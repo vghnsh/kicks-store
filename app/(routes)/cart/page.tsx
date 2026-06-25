@@ -11,23 +11,18 @@ import Image from 'next/image'
 import { selectUser } from '@/app/_redux/slices/userSlice'
 import { useRouter } from 'next/navigation'
 import { checkout } from '@/app/_utility/checkout'
-import { doc, getDoc, setDoc } from 'firebase/firestore'
-import { db } from '@/app/_firebase/config'
+import Link from 'next/link'
+import { XMarkIcon } from '@heroicons/react/24/outline'
 
 const Cart = () => {
   const router = useRouter()
   const cartData = useSelector(selectCartData)
   const user = useSelector(selectUser)
   const dispatch = useDispatch()
-  const handleAddToCart = (product: any) => {
-    dispatch(addToCart({ item: product, quantity: 1 }))
-  }
-  const handleRemoveFromCart = (product: any) => {
-    dispatch(removeFromCart(product))
-  }
-  const handleRemoveProductFromCart = (product: any) => {
-    dispatch(removeProductFromCart(product))
-  }
+
+  const handleAddToCart = (product: any) => dispatch(addToCart({ item: product, quantity: 1 }))
+  const handleRemoveFromCart = (product: any) => dispatch(removeFromCart(product))
+  const handleRemoveProductFromCart = (product: any) => dispatch(removeProductFromCart(product))
 
   const onCheckOut = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -36,26 +31,15 @@ const Cart = () => {
     if (!user) {
       router.push('/login')
     } else {
-      const lineItems: {
-        name: string
-        amount: number
-        currency: string
-        quantity: number
-        desc: string
-        image: string
-      }[] = []
-      cartData?.map((item) => {
-        lineItems.push({
-          name: item.item.title,
-          amount: item.item.price,
-          currency: 'INR',
-          quantity: item.quantity,
-          desc: item.item.description,
-          image: item.item.image,
-        })
-      })
+      const lineItems = cartData?.map((item) => ({
+        name: item.item.title,
+        amount: item.item.price,
+        currency: 'INR',
+        quantity: item.quantity,
+        desc: item.item.description,
+        image: item.item.image,
+      })) ?? []
 
-      // In your React component or client-side code
       checkout({
         lineItems,
         userName: user.name,
@@ -64,152 +48,129 @@ const Cart = () => {
         userEmail: user.email,
         cart: cartData,
       })
-      // console.log(res)
-      // Render a button that calls handleCheckout when clicked
     }
   }
 
-  if (cartData?.length === 0) {
+  if (!cartData?.length) {
     return (
-      <div className="bg-white text-center py-8">
-        <p className="text-gray-600 bold text-lg">No data found</p>
+      <div className="bg-white min-h-screen flex flex-col items-center justify-center gap-4 text-center px-4">
+        <div className="text-6xl">🛒</div>
+        <h2 className="text-2xl font-bold text-gray-900">Your cart is empty</h2>
+        <p className="text-gray-500 text-sm">Looks like you haven't added anything yet.</p>
+        <Link
+          href="/"
+          className="mt-4 px-8 py-3 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700 transition-colors"
+        >
+          Start Shopping
+        </Link>
       </div>
     )
   }
+
   return (
-    <div className="bg-gray-100 py-8 lg:px-16">
-      <div className="container mx-auto px-4">
-        <h1 className="text-2xl font-semibold mb-6 text-black">
-          Shopping Cart
-        </h1>
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="md:w-3/4">
-            <div className="bg-white rounded-lg shadow-md p-6 mb-4 overflow-x-auto">
-              <table className="w-full text-black ">
-                <thead style={{ marginBottom: '2rem' }}>
-                  <tr>
-                    <th className="text-left font-semibold pb-4">Product</th>
-                    <th className="text-left font-semibold ">Name</th>
-                    <th className="text-left font-semibold pl-2">Price</th>
-                    <th className="text-left font-semibold ">Quantity</th>
-                    <th className="text-left font-semibold ">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {cartData?.map((item) => (
-                    <tr key={Math.random()}>
-                      <td className="py-4 w-1/5">
-                        <div className="fl ex items-center h-32 w-32 object-contain">
-                          <Image
-                            width={0}
-                            height={0}
-                            sizes="100vw"
-                            src={item.item.image}
-                            alt="Product image"
-                            className="mr-1"
-                            style={{
-                              width: '14rem',
-                              height: '95%',
-                              objectFit: 'contain',
-                            }}
-                          />
-                        </div>
-                      </td>
-                      <td className="w-2/5">
-                        <span className="font-semibold">{item.item.title}</span>
-                      </td>
-                      <td className="py-4 pl-2 w-1/5">
-                        ₹{item.item.price * 10}
-                      </td>
-                      <td className="py-4 w-1/5">
-                        <div className="flex items-center">
-                          <button
-                            onClick={() => handleRemoveFromCart(item.item)}
-                            className="border rounded-md py-2 px-4 mr-2"
-                          >
-                            -
-                          </button>
-                          <span className="text-center w-8">
-                            {item.quantity}
-                          </span>
-                          <button
-                            onClick={() => handleAddToCart(item.item)}
-                            className="border rounded-md py-2 px-4 ml-2"
-                          >
-                            +
-                          </button>
-                        </div>
-                      </td>
-                      <td className="py-4 pl-2 w-1/5">
-                        ₹{item.item.price * 10 * item.quantity}
-                      </td>
-                      <td
-                        className="py-4 pl-8 w-1/5 cursor-pointer"
-                        onClick={() => handleRemoveProductFromCart(item.item)}
-                      >
-                        X
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div className="md:w-1/4 text-black">
-            <form onSubmit={(e) => onCheckOut(e)} method="POST">
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium leading-6 text-gray-900"
+    <div className="bg-gray-50 min-h-screen">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">Shopping Cart</h1>
+
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Items */}
+          <div className="flex-1 space-y-4">
+            {cartData?.map((item) => (
+              <div
+                key={item.item.id}
+                className="bg-white rounded-2xl p-4 sm:p-5 flex items-center gap-4 shadow-sm"
+              >
+                <div className="relative w-20 h-20 flex-shrink-0 rounded-xl bg-gray-50 overflow-hidden">
+                  <Image
+                    fill
+                    src={item.item.image}
+                    alt={item.item.title}
+                    className="object-contain p-2"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
+                    {item.item.title}
+                  </p>
+                  <p className="text-base font-bold text-gray-900">
+                    ₹{(item.item.price * 10 * item.quantity).toFixed(0)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => handleRemoveFromCart(item.item)}
+                    className="w-8 h-8 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center text-lg leading-none"
+                  >
+                    −
+                  </button>
+                  <span className="w-6 text-center text-sm font-semibold text-gray-900">
+                    {item.quantity}
+                  </span>
+                  <button
+                    onClick={() => handleAddToCart(item.item)}
+                    className="w-8 h-8 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center text-lg leading-none"
+                  >
+                    +
+                  </button>
+                </div>
+                <button
+                  onClick={() => handleRemoveProductFromCart(item.item)}
+                  className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors flex-shrink-0"
                 >
-                  Shipping Address
-                </label>
-                <div className="mt-2">
+                  <XMarkIcon className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Summary */}
+          <div className="lg:w-80 flex-shrink-0">
+            <form onSubmit={onCheckOut} method="POST">
+              <div className="bg-white rounded-2xl p-6 shadow-sm space-y-5">
+                <h2 className="text-lg font-bold text-gray-900">Order Summary</h2>
+
+                <div className="space-y-3 text-sm text-gray-600">
+                  <div className="flex justify-between">
+                    <span>Subtotal</span>
+                    <span className="font-medium text-gray-900">₹{calculateTotal(cartData) * 10}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Shipping</span>
+                    <span className="text-green-600 font-medium">Free</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Taxes</span>
+                    <span className="font-medium text-gray-900">₹0</span>
+                  </div>
+                  <div className="border-t border-gray-100 pt-3 flex justify-between">
+                    <span className="font-bold text-gray-900">Total</span>
+                    <span className="font-bold text-gray-900 text-base">₹{calculateTotal(cartData) * 10}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Shipping Address
+                  </label>
                   <textarea
                     id="address"
                     name="address"
-                    autoComplete="address"
                     required
-                    rows={2}
-                    className="block w-full rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    rows={3}
+                    placeholder="Enter your delivery address..."
+                    className="block w-full rounded-xl border border-gray-200 py-2.5 px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none transition-all resize-none"
                   />
                 </div>
-              </div>
-              <label
-                htmlFor="email"
-                className="mt-4 block text-sm font-medium leading-6 text-gray-900"
-              >
-                Test card for payment:
-                <br /> 4242 4242 4242 4242
-              </label>
 
-              <div className="bg-white rounded-lg shadow-md p-6 mt-6">
-                <h2 className="text-lg font-semibold mb-4">Summary</h2>
-                <div className="flex justify-between mb-2">
-                  <span>Subtotal</span>
-                  <span>₹{calculateTotal(cartData) * 10}</span>
-                </div>
-                <div className="flex justify-between mb-2">
-                  <span>Taxes</span>
-                  <span>₹0.00</span>
-                </div>
-                <div className="flex justify-between mb-2">
-                  <span>Shipping</span>
-                  <span>₹0.00</span>
-                </div>
-                <hr className="my-2" />
-                <div className="flex justify-between mb-2">
-                  <span className="font-semibold">Total</span>
-                  <span className="font-semibold">
-                    ₹{calculateTotal(cartData) * 10}
-                  </span>
-                </div>
+                <p className="text-xs text-gray-400">
+                  Test card: <span className="font-mono font-medium text-gray-600">4242 4242 4242 4242</span>
+                </p>
+
                 <button
-                  // onClick={onCheckOut}
                   type="submit"
-                  className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                  className="w-full py-3.5 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700 active:scale-[0.98] transition-all"
                 >
-                  Checkout
+                  Proceed to Checkout
                 </button>
               </div>
             </form>

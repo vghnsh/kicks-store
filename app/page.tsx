@@ -1,200 +1,162 @@
-'use client' // This is a client component 👈🏽
+'use client'
 
-import { Fragment, useState } from 'react'
-import { Dialog, Disclosure, Popover, Transition } from '@headlessui/react'
-import {
-  ArrowPathIcon,
-  Bars3Icon,
-  ChartPieIcon,
-  CursorArrowRaysIcon,
-  FingerPrintIcon,
-  SquaresPlusIcon,
-  XMarkIcon,
-} from '@heroicons/react/24/outline'
-import {
-  ChevronDownIcon,
-  PhoneIcon,
-  PlayCircleIcon,
-} from '@heroicons/react/20/solid'
 import Image from 'next/image'
-import { useDispatch, useSelector } from 'react-redux'
-import { clearUser, selectUser, setUser } from './_redux/slices/userSlice'
-import { signOut } from 'firebase/auth'
-import { auth } from './_firebase/config'
 import Link from 'next/link'
-import Header from './_components/Header/page'
 
-const products = [
-  {
-    name: 'Men Clothing',
-    description:
-      "Discover a wide range of stylish men's clothing for every occasion.",
-    href: '#',
-  },
-  {
-    name: 'Women Clothing',
-    description:
-      "Explore the latest trends in women's fashion and find your perfect look.",
-    href: '#',
-  },
-  {
-    name: 'Jewelery',
-    description:
-      'Browse our exquisite collection of jewelry pieces for any special moment.',
-    href: '#',
-  },
-  {
-    name: 'Electronics',
-    description:
-      'Shop the latest electronic gadgets and stay connected with cutting-edge technology.',
-    href: '#',
-  },
-]
-
-const callsToAction = [
-  { name: 'Watch demo', href: '#', icon: PlayCircleIcon },
-  { name: 'Contact sales', href: '#', icon: PhoneIcon },
-]
-
-function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(' ')
-}
-
-export default function Example() {
-  const user = useSelector(selectUser)
-  const dispatch = useDispatch()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const handleLogout = () => {
-    dispatch(clearUser())
-    signOut(auth)
-  }
+export default function HomePage() {
   return (
-    <div className="bg-white">
-      <div className="flex justify-center items-center">
-        <div className="2xl:mx-auto 2xl:container py-4 px-4 sm:px-6 xl:px-20 2xl:px-0 w-full">
-          <div className="flex flex-col jusitfy-center items-center space-y-10">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 md:gap-x-8 w-full">
-              <Link href="categories/women">
-                <div className="relative group flex justify-center items-center h-3/4 w-full">
-                  <Image
-                    className="object-center object-cover h-full w-full"
-                    src="https://i.ibb.co/ThPFmzv/omid-armin-m-VSb6-PFk-VXw-unsplash-1-1.png"
-                    alt="girl-image"
-                    width={1000}
-                    height={1000}
-                  />
-                  <button className="dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 bottom-4  absolute text-base font-medium leading-none text-gray-800 py-3 w-36 bg-white">
-                    Women
-                  </button>
-                </div>
-              </Link>
-
-              <div className="flex flex-col space-y-4 md:space-y-8 mt-4 md:mt-0 h-3/4">
-                <div
-                  className="relative group flex justify-center items-center w-full"
-                  style={{ height: '45%' }}
-                >
-                  <Link
-                    href="categories/electronics"
-                    className="flex justify-center"
-                    style={{ height: '-webkit-fill-available' }}
-                  >
-                    <Image
-                      className="object-center object-cover h-auto w-full"
-                      src="/assets/Images/elect.jpg"
-                      alt="shoe-image"
-                      width={1000}
-                      height={1000}
-                      style={{ height: '-webkit-fill-available' }}
-                    />
-                    <button className="dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 bottom-4 absolute text-base font-medium leading-none text-gray-800 py-3 w-36 bg-white">
-                      electronics
-                    </button>
-                  </Link>
-                </div>
-                <div
-                  className="relative group flex justify-center items-center w-full"
-                  style={{ height: '48%' }}
-                >
-                  <Link
-                    href="categories/jewelery"
-                    className="flex justify-center"
-                    style={{ height: '-webkit-fill-available' }}
-                  >
-                    <Image
-                      className="object-center object-cover w-full"
-                      src="/assets/Images/jew1.jpg"
-                      alt="watch-image"
-                      width={1000}
-                      height={100}
-                      style={{ height: '-webkit-fill-available' }}
-                    />
-                    <button className="dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 bottom-4 absolute text-base font-medium leading-none text-gray-800 py-3 w-36 bg-white">
-                      jewelery
-                    </button>
-                  </Link>
-                </div>
-              </div>
-              <Link href="categories/men">
-                <div className="relative group justify-center items-center h-3/4 w-full hidden lg:flex">
-                  <Image
-                    className="object-center object-cover h-full w-full"
-                    src="/assets/Images/men.jpg"
-                    alt="girl-image"
-                    width={1000}
-                    height={1000}
-                  />
-                  <button className="dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 bottom-4 absolute text-base font-medium leading-none text-gray-800 py-3 w-36 bg-white">
-                    men
-                  </button>
-                </div>
-              </Link>
-              <Link href="categories/men">
-                <div className="relative group flex justify-center items-center h-full w-full mt-4 md:hidden md:mt-8 lg:hidden">
-                  <Image
-                    className="object-center object-cover h-full w-full hidden md:block"
-                    src="/assets/Images/men.jpg"
-                    alt="girl-image"
-                    width={1000}
-                    height={1000}
-                  />
-                  <Image
-                    className="object-center object-cover h-full w-full md:hidden"
-                    src="/assets/Images/men.jpg"
-                    alt="olive-tatiane-Im-Ez-F9-B91-Mk-unsplash-2"
-                    width={1000}
-                    height={1000}
-                  />
-                  <button className="dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 bottom-4 absolute text-base font-medium leading-none text-gray-800 py-3 w-36 bg-white">
-                    men
-                  </button>
-                </div>
-              </Link>
-            </div>
-            <Link href="categories/men">
-              <div className="relative group hidden md:flex justify-center items-center h-full w-full mt-4 md:mt-8 lg:hidden">
-                <Image
-                  className="object-center object-cover h-full w-full hidden md:block"
-                  src="/assets/Images/men.jpg"
-                  alt="girl-image"
-                  width={1000}
-                  height={1000}
-                />
-                <Image
-                  className="object-center object-cover h-full w-full sm:hidden"
-                  src="/assets/Images/men.jpg"
-                  alt="olive-tatiane-Im-Ez-F9-B91-Mk-unsplash-2"
-                  width={1000}
-                  height={1000}
-                />
-                <button className="dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 bottom-4 absolute text-base font-medium leading-none text-gray-800 py-3 w-36 bg-white">
-                  men
-                </button>
-              </div>
+    <div className="min-h-screen bg-white">
+      {/* Hero */}
+      <section className="bg-gray-950 text-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20 sm:py-32 flex flex-col items-center text-center">
+          <span className="mb-4 inline-block rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-gray-300">
+            New Season
+          </span>
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-none mb-6">
+            Dress the
+            <br />
+            <span className="text-gray-400">Future.</span>
+          </h1>
+          <p className="max-w-md text-gray-400 text-base sm:text-lg mb-10">
+            Discover curated styles across fashion, electronics, and accessories — all in one place.
+          </p>
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link
+              href="categories/women"
+              className="px-8 py-3.5 rounded-full bg-white text-gray-900 text-sm font-semibold hover:bg-gray-100 transition-colors"
+            >
+              Shop Now
+            </Link>
+            <Link
+              href="categories/electronics"
+              className="px-8 py-3.5 rounded-full border border-white/20 text-white text-sm font-semibold hover:bg-white/10 transition-colors"
+            >
+              Explore Electronics
             </Link>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* Categories — bento layout */}
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+        <div className="mb-10">
+          <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">Browse</p>
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">Shop by Category</h2>
+        </div>
+
+        {/*
+          Desktop bento (lg+):
+            col 1 (40%): Women tall card (2 rows)
+            col 2 (60%): top row split Electronics | Jewelery, bottom row Men wide
+          Mobile: stacked single column
+        */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 sm:gap-4">
+
+          {/* Women — tall left card */}
+          <Link
+            href="categories/women"
+            className="relative overflow-hidden rounded-2xl group lg:col-span-2 lg:row-span-2 h-64 lg:h-auto lg:min-h-[540px]"
+          >
+            <Image
+              src="https://i.ibb.co/ThPFmzv/omid-armin-m-VSb6-PFk-VXw-unsplash-1-1.png"
+              alt="Women's Fashion"
+              fill
+              className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+            <div className="absolute bottom-0 left-0 p-6">
+              <p className="text-xs font-semibold uppercase tracking-widest text-white/60 mb-1">Women's Fashion</p>
+              <h3 className="text-2xl font-bold text-white leading-tight">Shop Women</h3>
+              <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-white/80 group-hover:text-white transition-colors">
+                Explore collection
+                <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </span>
+            </div>
+          </Link>
+
+          {/* Right column top row: Electronics + Jewelery */}
+          <div className="lg:col-span-3 grid grid-cols-2 gap-3 sm:gap-4">
+            <Link
+              href="categories/electronics"
+              className="relative overflow-hidden rounded-2xl group h-52 sm:h-64"
+            >
+              <Image
+                src="/assets/Images/elect.jpg"
+                alt="Electronics"
+                fill
+                className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+              <div className="absolute bottom-0 left-0 p-4 sm:p-5">
+                <p className="text-xs font-semibold uppercase tracking-widest text-white/60 mb-0.5">Tech</p>
+                <h3 className="text-lg font-bold text-white">Electronics</h3>
+              </div>
+            </Link>
+
+            <Link
+              href="categories/jewelery"
+              className="relative overflow-hidden rounded-2xl group h-52 sm:h-64"
+            >
+              <Image
+                src="/assets/Images/jew1.jpg"
+                alt="Jewelery"
+                fill
+                className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+              <div className="absolute bottom-0 left-0 p-4 sm:p-5">
+                <p className="text-xs font-semibold uppercase tracking-widest text-white/60 mb-0.5">Accessories</p>
+                <h3 className="text-lg font-bold text-white">Jewelery</h3>
+              </div>
+            </Link>
+          </div>
+
+          {/* Men — wide bottom-right card */}
+          <Link
+            href="categories/men"
+            className="relative overflow-hidden rounded-2xl group lg:col-span-3 h-52 sm:h-64"
+          >
+            <Image
+              src="/assets/Images/men.jpg"
+              alt="Men's Clothing"
+              fill
+              className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+            <div className="absolute bottom-0 left-0 p-6">
+              <p className="text-xs font-semibold uppercase tracking-widest text-white/60 mb-1">Men's Fashion</p>
+              <h3 className="text-2xl font-bold text-white leading-tight">Shop Men</h3>
+              <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-white/80 group-hover:text-white transition-colors">
+                Explore collection
+                <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </span>
+            </div>
+          </Link>
+        </div>
+      </section>
+
+      {/* Value props */}
+      <section className="border-t border-gray-100">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
+            {[
+              { icon: '🚀', title: 'Fast Delivery', desc: 'Orders dispatched within 24 hours' },
+              { icon: '🔒', title: 'Secure Checkout', desc: 'Powered by Stripe — 100% safe' },
+              { icon: '↩️', title: 'Easy Returns', desc: '30-day hassle-free return policy' },
+            ].map((item) => (
+              <div key={item.title} className="flex flex-col items-center gap-2">
+                <span className="text-2xl">{item.icon}</span>
+                <h4 className="text-sm font-semibold text-gray-900">{item.title}</h4>
+                <p className="text-sm text-gray-500">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
     </div>
   )
 }

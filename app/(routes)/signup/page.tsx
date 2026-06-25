@@ -5,7 +5,7 @@ import { toast } from 'react-toastify'
 import {
   GoogleAuthProvider,
   createUserWithEmailAndPassword,
-  signInWithRedirect,
+  signInWithPopup,
   updateProfile,
 } from 'firebase/auth'
 import Image from 'next/image'
@@ -58,7 +58,8 @@ const Signup = () => {
   const singInWithGoogle = async () => {
     const provider = new GoogleAuthProvider()
     try {
-      await signInWithRedirect(auth, provider)
+      await signInWithPopup(auth, provider)
+      router.push('/')
     } catch (err) {
       console.log('err: ', err)
     }
