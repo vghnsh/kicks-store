@@ -2,230 +2,125 @@
 import { DateTime } from 'luxon'
 import { db } from '@/app/_firebase/config'
 import { selectUser } from '@/app/_redux/slices/userSlice'
-import {
-  DocumentData,
-  collection,
-  doc,
-  getDocs,
-  onSnapshot,
-} from 'firebase/firestore'
-import { StaticImport } from 'next/dist/shared/lib/get-img-props'
+import { collection, getDocs } from 'firebase/firestore'
 import Image from 'next/image'
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { useSelector } from 'react-redux'
-import Stripe from 'stripe'
 import { useQuery } from 'react-query'
 import TopLoader from '@/app/_components/TopLoader/page'
+import Link from 'next/link'
 
-// Import necessary modules and dependencies...
+type OrderItem = {
+  title: string
+  image: string
+  price: number
+  quantity: number
+}
+
+type Order = {
+  items: OrderItem[]
+  amount: number
+  address: string
+  paymentId: string
+  time: number
+}
+
+const fetchOrders = async (userId: string): Promise<Order[]> => {
+  const ordersCollection = collection(db, 'users', userId, 'orders')
+  const snapshot = await getDocs(ordersCollection)
+  return snapshot.docs.map((doc) => doc.data() as Order)
+}
 
 const Page = () => {
-  const stripe = require('stripe')(
-    'sk_test_51O8vX2SE6vnUeSmIthLJ4JTHAcBWgKDZrR4ngbUL9MQnlcvXIInqLKRLE3LaJs35x0Ust3sqH3iB6T8IanzkmNS500FDQlg9B4',
+  const user = useSelector(selectUser)
+  const userId = user?.id?.toString() || ''
+
+  const { data: orders, isLoading } = useQuery(
+    ['orders', userId],
+    () => fetchOrders(userId),
+    { enabled: !!userId },
   )
 
-  const fetchData = async (userId: string) => {
-    const ordersCollection = collection(db, 'users', userId, 'orders')
-    const snapshot = await getDocs(ordersCollection)
-    const data = await Promise.all(
-      snapshot.docs.map(async (doc) => {
-        const firebaseData = doc.data()
-        const session = await fetchProducts(firebaseData.data.id)
-        firebaseData.product = session
-        return firebaseData
-      }),
+  if (isLoading) return <TopLoader />
+
+  const sortedOrders = orders?.slice().sort((a, b) => b.time - a.time)
+
+  if (!sortedOrders?.length) {
+    return (
+      <div className="bg-white min-h-screen flex flex-col items-center justify-center gap-4 text-center px-4">
+        <div className="text-6xl">📦</div>
+        <h2 className="text-2xl font-bold text-gray-900">No orders yet</h2>
+        <p className="text-gray-500 text-sm">Your past orders will appear here.</p>
+        <Link
+          href="/"
+          className="mt-4 px-8 py-3 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700 transition-colors"
+        >
+          Start Shopping
+        </Link>
+      </div>
     )
-    return data
-  }
-
-  const fetchProducts = async (sessionId: any) => {
-    const lineItems = await stripe.checkout.sessions.listLineItems(sessionId)
-    return lineItems
-  }
-
-  // console.log(process.env.NEXT_STRIPE_SECRET_KEY, stripe1)
-
-  const user = useSelector(selectUser)
-  // const [history, setHistory] = useState<DocumentData[]>([])
-
-  // const fetchProducts = async (sessionId: string): Promise<[]> => {
-  //   const lineItems = await stripe.checkout.sessions.listLineItems(sessionId)
-  //   return lineItems
-  // }
-
-  // useEffect(() => {
-  //   if (!user) {
-  //     return
-  //   }
-
-  //   const userId = user?.id?.toString() // Ensure userId is a string
-  //   const ordersCollection = collection(db, 'users', userId, 'orders')
-
-  //   const fetchData = async () => {
-  //     try {
-  //       const snapshot = await getDocs(ordersCollection)
-  //       const updatedHistory = await Promise.all(
-  //         snapshot.docs.map(async (doc) => {
-  //           const firebaseData = doc.data()
-  //           const session = await fetchProducts(firebaseData.data.id)
-  //           firebaseData.product = session
-  //           return firebaseData
-  //         }),
-  //       )
-
-  //       setHistory(updatedHistory)
-  //     } catch (error) {
-  //       console.error('Error fetching data:', error)
-  //     }
-  //   }
-
-  //   fetchData()
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [user])
-
-  // const user = useSelector(selectUser);
-  const userId = user?.id?.toString() || '' // Use an empty string if userId is undefined
-
-  const {
-    data: history,
-    isLoading,
-    isError,
-  } = useQuery(['history', userId], () => fetchData(userId), {
-    enabled: !!userId, // Ensure that the query is only executed when userId is available
-  })
-
-  var sortedData = history?.sort(function (a, b) {
-    return b.time - a.time
-  })
-
-  if (isLoading) {
-    return <TopLoader />
   }
 
   return (
-    <div className="flex flex-col justify-center md:flex-row gap-4 bg-white">
-      <div className="md:w-3/4">
-        <div className="bg-white rounded-lg shadow-md p-6 mb-4  overflow-x-auto">
-          <table className="w-full text-black">
-            {sortedData?.map((item) => (
-              <div key={Math.random()}>
-                <thead style={{ marginBottom: '2rem' }}>
-                  <tr>
-                    <th className="text-left font-semibold py-4 w-1/5">
-                      Product
-                    </th>
-                    <th className="text-left font-semibold w-2/5">Name</th>
-                    <th className="text-left font-semibold py-4 px-2 pl-2 w-1/5">
-                      Price
-                    </th>
-                    <th className="text-left font-semibold py-4 w-1/5">
-                      Quantity
-                    </th>
-                    <th className="text-left font-semibold py-4 pl-2 w-1/5">
-                      Total
-                    </th>
-                  </tr>
-                </thead>
+    <div className="bg-gray-50 min-h-screen">
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-10">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">My Orders</h1>
 
-                <tbody>
-                  {item?.product?.data?.map(
-                    (item: {
-                      price: {
-                        metadata: {
-                          image: string | StaticImport
-                          name:
-                            | string
-                            | number
-                            | boolean
-                            | React.ReactElement<
-                                any,
-                                string | React.JSXElementConstructor<any>
-                              >
-                            | Iterable<React.ReactNode>
-                            | React.ReactPortal
-                            | React.PromiseLikeOfReactNode
-                            | null
-                            | undefined
-                        }
-                      }
-                      amount_total: number
-                      quantity:
-                        | string
-                        | number
-                        | boolean
-                        | React.ReactElement<
-                            any,
-                            string | React.JSXElementConstructor<any>
-                          >
-                        | Iterable<React.ReactNode>
-                        | React.PromiseLikeOfReactNode
-                        | null
-                        | undefined
-                    }) => {
-                      return (
-                        <tr key={Math.random()}>
-                          <td className="py-4 w-1/5">
-                            <div className="fl ex items-center h-32 w-32 object-contain">
-                              <Image
-                                width={0}
-                                height={0}
-                                sizes="100vw"
-                                src={item.price.metadata.image}
-                                alt="Product image"
-                                className="mr-1"
-                                style={{
-                                  width: '14rem',
-                                  height: '95%',
-                                  objectFit: 'contain',
-                                }}
-                              />
-                            </div>
-                          </td>
-                          <td className="w-2/5">
-                            <span className="font-semibold">
-                              {item.price.metadata?.name}
-                            </span>
-                          </td>
-                          <td className="py-4 pl-2 w-1/5">
-                            ₹{item.amount_total / 100}
-                          </td>
-                          <td className="py-4 w-1/5">
-                            <div className="flex items-center">
-                              <span className="text-center w-8">
-                                {item.quantity}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="py-4 pl-2 w-1/5">
-                            ₹ ₹
-                            {((item.amount_total as number) / 100) *
-                              (item.quantity as number)}
-                          </td>
-                        </tr>
-                      )
-                    },
-                  )}
-                </tbody>
-                <div className="d-flex justify-end mb-4">
-                  <h1 className="text-end">
-                    Total amount paid: ₹{item?.amount / 100}
-                  </h1>
-                  <address className="text-end">
-                    Address: {item?.cart?.address}
-                  </address>
-                  <time className="block text-end">
-                    Time:{' '}
-                    {item?.time
-                      ? DateTime.fromSeconds(item?.time).toFormat(
-                          'dd MMM, yyyy HH:mm',
-                        )
-                      : ''}
-                  </time>
+        <div className="space-y-6">
+          {sortedOrders.map((order) => (
+            <div key={order.paymentId} className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              {/* Header */}
+              <div className="flex flex-wrap items-center justify-between gap-2 px-5 sm:px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                <div>
+                  <p className="text-xs text-gray-400 uppercase tracking-wider">Order</p>
+                  <p className="text-sm font-mono font-medium text-gray-700">{order.paymentId}</p>
                 </div>
-                <hr />
+                <div className="text-right">
+                  <p className="text-xs text-gray-400 uppercase tracking-wider">Placed</p>
+                  <p className="text-sm text-gray-700">
+                    {order.time
+                      ? DateTime.fromSeconds(order.time).toFormat('dd MMM yyyy, HH:mm')
+                      : ''}
+                  </p>
+                </div>
               </div>
-            ))}
-          </table>
+
+              {/* Items */}
+              <div className="divide-y divide-gray-100">
+                {order.items?.map((item, i) => (
+                  <div key={i} className="flex items-center gap-4 px-5 sm:px-6 py-4">
+                    <div className="relative w-16 h-16 flex-shrink-0 rounded-xl bg-gray-50 overflow-hidden">
+                      <Image
+                        fill
+                        src={item.image}
+                        alt={item.title}
+                        className="object-contain p-2"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 line-clamp-2">{item.title}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Qty: {item.quantity}</p>
+                    </div>
+                    <p className="text-sm font-semibold text-gray-900 flex-shrink-0">
+                      ₹{(item.price * item.quantity).toFixed(0)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Footer */}
+              <div className="px-5 sm:px-6 py-4 border-t border-gray-100 flex flex-wrap items-end justify-between gap-2">
+                <div className="max-w-xs">
+                  <p className="text-xs text-gray-400 uppercase tracking-wider mb-0.5">Ship to</p>
+                  <p className="text-sm text-gray-700">{order.address}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-gray-400 uppercase tracking-wider">Total paid</p>
+                  <p className="text-lg font-bold text-gray-900">₹{Math.round(order.amount).toLocaleString('en-IN')}</p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

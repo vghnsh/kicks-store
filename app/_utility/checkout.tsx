@@ -1,73 +1,6 @@
-import { loadStripe } from '@stripe/stripe-js'
-import { Stripe } from '@stripe/stripe-js'
-
-// Define the type for your product
-type Product = {
-  name: string
-  description: string
-  price: number
-}
-
-// Define the type for the checkout function
-type CheckoutParamsNew = {
-  stripe: Stripe | null
-  lineItems: Product[]
-  userId: number
-  userName: string
-  shippingAddress: string
-  userEmail: string
-  cart: Array<any>
-}
-
-// Define the handleCheckout function
-const handleCheckout = async ({
-  stripe,
-  lineItems,
-  userId,
-  userName,
-  shippingAddress,
-  userEmail,
-  cart,
-}: CheckoutParamsNew): Promise<void> => {
-  try {
-    // Assuming you have a type for your product
-    const response = await fetch('/api/create-product', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(lineItems),
-    })
-
-    const productData: Product[] = await response.json()
-
-    const sessionResponse = await fetch('/api/checkout-sessions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        productData,
-        userId,
-        userEmail,
-        userName,
-        shippingAddress,
-        cart,
-      }),
-    })
-
-    const { sessionId } = await sessionResponse.json()
-
-    // Redirect to Stripe Checkout
-    stripe?.redirectToCheckout({ sessionId })
-  } catch (error) {
-    console.error(error)
-  }
-}
-
 type CheckoutParams = {
-  lineItems: any
-  userId: number
+  lineItems: any[]
+  userId: string
   userName: string
   shippingAddress: string
   userEmail: string
@@ -75,37 +8,54 @@ type CheckoutParams = {
 }
 
 const checkout = async ({
-  lineItems,
   userId,
   userName,
   shippingAddress,
   userEmail,
   cart,
 }: CheckoutParams) => {
-  let stripePromise: Promise<Stripe | null> | null = null
+  const items = cart.map((c) => ({
+    title: c.item.title,
+    image: c.item.image,
+    price: c.item.price * 10,
+    quantity: c.quantity,
+  }))
 
-  const getStripe = (): Promise<Stripe | null> => {
-    if (!stripePromise) {
-      stripePromise = loadStripe(
-        process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '',
-      )
-    }
-    return stripePromise
+  const amount = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
+
+  // Persist order details so the success page can save to Firestore after Stripe redirect
+  sessionStorage.setItem(
+    'pending_order',
+    JSON.stringify({ items, amount, address: shippingAddress, userName, userEmail, userId }),
+  )
+
+  const lineItems = cart.map((c) => ({
+    price_data: {
+      currency: 'usd',
+      product_data: {
+        name: c.item.title,
+        images: [c.item.image],
+      },
+      unit_amount: Math.round(c.item.price * 100), // cents
+    },
+    quantity: c.quantity,
+  }))
+
+  const res = await fetch('/api/create-order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ lineItems, customerEmail: userEmail }),
+  })
+
+  if (!res.ok) {
+    sessionStorage.removeItem('pending_order')
+    alert('Could not initiate payment. Please try again.')
+    return
   }
 
-  const stripe = await getStripe()
-
-  await handleCheckout({
-    stripe,
-    lineItems,
-    userId,
-    userName,
-    userEmail,
-    shippingAddress,
-    cart,
-  })
+  const { url } = await res.json()
+  window.location.href = url
 }
 
 export default checkout
-
-export { checkout, handleCheckout }
+export { checkout }
