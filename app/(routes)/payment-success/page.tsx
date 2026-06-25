@@ -36,11 +36,11 @@ const Page = () => {
             const { items, amount, address, userName, userEmail, userId } = JSON.parse(pending)
             await addDoc(collection(db, 'users', String(userId), 'orders'), {
               items, amount, address, userName, userEmail,
-              paymentId: pid || orderId,
+              paymentId: pid || sessionId,
               time: Math.floor(Date.now() / 1000),
             })
           }
-          setPaymentId(pid || orderId)
+          setPaymentId(pid || sessionId)
           dispatch(clearCart())
           setStatus('success')
         } else {

@@ -44,7 +44,7 @@ const Cart = () => {
         lineItems,
         userName: user.name,
         shippingAddress: address,
-        userId: user.id,
+        userId: String(user.id),
         userEmail: user.email,
         cart: cartData,
       })
